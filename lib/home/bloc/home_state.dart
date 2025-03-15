@@ -5,6 +5,10 @@ sealed class HomeState extends Equatable {
 }
 
 final class HomeInitial extends HomeState {
+  final bool? success;
+
+  HomeInitial({this.success});
+
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [success];
 }
