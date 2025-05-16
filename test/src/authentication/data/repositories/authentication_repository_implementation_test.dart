@@ -5,6 +5,7 @@ import 'package:todo/core/errors/exceptions.dart';
 import 'package:todo/core/errors/failure.dart';
 import 'package:todo/src/authentication/data/datasources/authentication_remote_data_source.dart';
 import 'package:todo/src/authentication/data/repository/authentication_repository_implementation.dart';
+import 'package:todo/src/authentication/domain/entities/user.dart';
 
 class MockAuthenticationRemoteDataSource extends Mock
     implements AuthenticationRemoteDataSource {}
@@ -59,7 +60,7 @@ void main() {
       verifyNoMoreInteractions(remoteDataSource);
     });
 
-    test('Should return a [ServerFailure] when the call to '
+    test('Should return a [APIFailure] when the call to '
         'the remote source is unsuccessful', () async {
       when(
         () => remoteDataSource.createUser(
@@ -95,6 +96,44 @@ void main() {
         ),
       ).called(1);
       verifyNoMoreInteractions(remoteDataSource);
+    });
+  });
+
+  group('get users', () {
+    test(
+      'should call the [RemoteDataSource.getUser] and '
+      'return [List<User>] when call to remote source is successful',
+      () async {
+        //arrange
+        when(() => remoteDataSource.getUsers()).thenAnswer((_) async => []);
+
+        //act
+        final result = await repositoryImplementation.getUsers();
+
+        //assert
+        expect(result, isA<Right<dynamic, List<User>>>());
+        verify(() => remoteDataSource.getUsers()).called(1);
+        verifyNoMoreInteractions(remoteDataSource);
+        //dart cant see the Right and Left thus we use
+        // the isA function to properly compare the types
+      },
+    );
+
+    test('should return a [APIFailure] when the call to '
+        'the remote source is unsuccessful', () async {
+      when(() => remoteDataSource.getUsers()).thenThrow(tException);
+
+      final result = await repositoryImplementation.getUsers();
+
+      expect(
+        result,
+        Left(
+          ApiFailure(
+            message: tException.message,
+            statusCode: tException.statusCode,
+          ),
+        ),
+      );
     });
   });
 }
